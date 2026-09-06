@@ -24,6 +24,24 @@ DRY RUN 2026-09-04: 136 dormant clients, 6/37 symbols with a catalyst, 42 would 
         30,073  ACC-0024  RIVN hit a 52-week low
 ```
 
+## What the client sees
+
+The message is rendered as a card inside the trading platform's popup, in the
+client's language. One accent colour follows direction, and the focal number is
+the only thing that changes with the news. No call to action, no advice.
+
+<p>
+  <img src="docs/cards/smci_up_en_desktop.png" width="496" alt="SMCI up 7.4%, English, desktop layout">
+  <img src="docs/cards/rivn_low_he_desktop.png" width="496" alt="RIVN 52-week low, Hebrew, desktop layout">
+</p>
+<p>
+  <img src="docs/cards/nvda_high_en_mobile.png" width="240" alt="NVDA 52-week high, English, mobile layout">
+  <img src="docs/cards/soxl_down_he_mobile.png" width="240" alt="SOXL down 5.9%, Hebrew, mobile layout">
+</p>
+
+`catalyst_demo/card.py` renders these from a `Notification`; `scripts/render_cards.py`
+writes the samples in `docs/cards/` as HTML, and as PNG when WeasyPrint is installed.
+
 ## Run it
 
 Python 3.9 or newer, no third-party packages.
@@ -32,7 +50,7 @@ Python 3.9 or newer, no third-party packages.
 git clone https://github.com/Eran533/catalyst-engine-demo
 cd catalyst-engine-demo
 pip install -e .[dev]                     # only pytest, for the tests
-pytest -q                                 # 28 tests
+pytest -q                                 # 32 tests
 
 python -m catalyst_demo run --date 2026-09-04 --dry-run   # plan only
 python -m catalyst_demo run --date 2026-09-04             # send (to the console + data/sent.jsonl)
@@ -154,13 +172,15 @@ catalyst_demo/
   catalysts.py     detection, headline choice, priority score
   state.py         idempotency state with atomic writes
   templates.py     English and Hebrew message text
+  card.py          HTML card (desktop / mobile, LTR / RTL) for the platform popup
   notifier.py      Notifier protocol + console / jsonl / collecting implementations
   engine.py        plan() and run() for one trading day
   report.py        next-day engagement
   io.py            CSV loaders
   __main__.py      CLI: run, report
 scripts/make_demo_data.py   synthetic data generator
-tests/                      28 tests, pure Python, no fixtures beyond tmp_path
+scripts/render_cards.py     sample cards -> docs/cards/
+tests/                      32 tests, pure Python, no fixtures beyond tmp_path
 data/                       committed synthetic data set
 ```
 
