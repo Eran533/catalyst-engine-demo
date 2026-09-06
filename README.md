@@ -42,7 +42,10 @@ the only thing that changes with the news. No call to action, no advice.
 
 The first two are the full phone popup: platform title bar, greeting, disclaimer,
 support line, sign-off and buttons. The third is the card on its own, as embedded
-in a desktop popup.
+in a desktop popup. Black surface, white type, pink for the brand, green for a good
+catalyst and red for a bad one. Space Grotesk carries the headline and the focal
+number, Assistant the rest (Google Fonts, with system fallbacks), and a coloured
+ticker tile stands in for a company logo.
 
 `catalyst_demo/card.py` renders these from a `Notification` (`render_card` for the
 card, `render_popup` for the phone popup); `scripts/render_cards.py` writes the

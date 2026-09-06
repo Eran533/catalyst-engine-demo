@@ -2,135 +2,175 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8" />
-<title>SMCI moved +7.4% today</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Market note - Demo Broker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Rubik:wght@500;700;800&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
 :root {
-  --paper: #0d1b34; --paper-2: #16294a; --ink: #eef2f9; --ink-2: #aab7cd; --ink-3: #7387a3;
-  --line: #233655; --up: #2fd39a; --down: #ff6f61; --accent: var(--ink);
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: "Heebo", "Segoe UI", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  --bg: #0a0a0d; --bg-2: #131318; --ink: #ffffff; --ink-2: #b9b9c6; --ink-3: #75758a;
+  --line: #23232c; --pink: #ff4fa3; --up: #2ee88a; --down: #ff3d5e;
+  --accent: var(--ink); --tint: rgba(255,255,255,0.06);
+  --display: "Space Grotesk", "Rubik", "Segoe UI", system-ui, sans-serif;
+  --body: "Assistant", "Rubik", "Segoe UI", system-ui, sans-serif;
 }
-body[data-move="up"]   { --accent: var(--up); }
-body[data-move="down"] { --accent: var(--down); }
+body[data-move="up"]   { --accent: var(--up);   --tint: rgba(46,232,138,0.12); }
+body[data-move="down"] { --accent: var(--down); --tint: rgba(255,61,94,0.12); }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font-family: var(--sans); }
-.card { position: relative; overflow: hidden; background: var(--paper); }
-.card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent); }
-[dir="rtl"] .card::before { inset: 0 0 0 auto; }
-.ghost { position: absolute; right: -8px; bottom: -28px; font: 600 150px var(--mono); color: var(--accent); opacity: .06; }
-[dir="rtl"] .ghost { right: auto; left: -8px; }
-.head { display: flex; align-items: center; gap: 12px; }
-.badge { width: 44px; height: 44px; border-radius: 12px; background: var(--paper-2); border: 1px solid var(--line);
-         text-align: center; line-height: 42px; font: 600 12px/42px var(--mono); color: var(--accent);
-         flex-shrink: 0; direction: ltr; }
-/* the header row is laid out left-to-right and mirrored by hand for Hebrew,
-   which renders more predictably than a right-to-left flex row */
-.head, .body, .foot { direction: ltr; }
-[dir="rtl"] .head, [dir="rtl"] .body, [dir="rtl"] .foot { flex-direction: row-reverse; }
-[dir="rtl"] .kicker, [dir="rtl"] .symbol, [dir="rtl"] .col-text, [dir="rtl"] .disclaimer,
-[dir="rtl"] .stat-label { direction: rtl; text-align: right; }
-.stat.long { font-size: 34px; }
-/* numbers and dates always read left-to-right, even inside a Hebrew card */
-.stat, .stat-sub, .chip, bdi { direction: ltr; unicode-bidi: isolate; }
-[dir="rtl"] .stat, [dir="rtl"] .stat-sub { text-align: right; }
-.kicker { font: 600 10px var(--sans); letter-spacing: .18em; color: var(--ink-3); }
-.symbol { font: 600 15px var(--mono); margin-top: 3px; }
-.chip { margin-inline-start: auto; font: 500 10px var(--mono); color: var(--ink-3); border: 1px solid var(--line);
-        border-radius: 999px; padding: 4px 10px; background: var(--paper-2); white-space: nowrap; }
-.stat { font: 600 44px var(--mono); color: var(--accent); letter-spacing: -.02em; line-height: 1; }
-.stat-label { font: 500 10px var(--sans); letter-spacing: .14em; color: var(--ink-2); margin-top: 6px; }
-.stat-sub { font: 500 10.5px var(--mono); color: var(--ink-3); margin-top: 3px; }
-.headline { font: 600 19px/1.25 var(--serif); }
-.who { font: 400 12px/1.5 var(--sans); color: var(--ink-2); margin-top: 6px; }
-.rule { height: 1px; background: var(--line); }
-.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.brand { font: 600 11px var(--mono); color: var(--ink-2); white-space: nowrap; }
-.disclaimer { font: 400 10px/1.4 var(--sans); color: var(--ink-3); }
+body { font-family: var(--body); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
 
-/* desktop: 496 x 225, two columns */
-body[data-layout="desktop"] .card { width: 496px; height: 225px; padding: 18px 20px 14px 24px; }
-body[data-layout="desktop"] .body { display: flex; gap: 20px; margin-top: 14px; }
-body[data-layout="desktop"] .col-stat { flex: 0 0 150px; }
-body[data-layout="desktop"] .divider { width: 1px; background: var(--line); }
-body[data-layout="desktop"] .col-text { flex: 1; }
-body[data-layout="desktop"] .rule { margin: 14px 0 10px; }
+.card { position: relative; overflow: hidden; background: var(--bg); color: var(--ink); }
+/* soft colour glows: the catalyst colour top-right, the brand pink bottom-left */
+.glow { position: absolute; border-radius: 50%; z-index: 0; }
+/* (colours written out: WeasyPrint cannot resolve var() inside gradients) */
+.glow.a { opacity: .28; background: radial-gradient(circle, #ffffff 0%, rgba(0,0,0,0) 70%); }
+body[data-move="up"]   .glow.a { background: radial-gradient(circle, #2ee88a 0%, rgba(0,0,0,0) 70%); }
+body[data-move="down"] .glow.a { background: radial-gradient(circle, #ff3d5e 0%, rgba(0,0,0,0) 70%); }
+.glow.b { opacity: .2; background: radial-gradient(circle, #ff4fa3 0%, rgba(0,0,0,0) 70%); }
+/* brand hairline along the top: pink fading into the catalyst colour */
+.card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 5; background: #ff4fa3; }
+body[data-move="up"]   .card::before { background: linear-gradient(90deg, #ff4fa3 0%, #2ee88a 100%); }
+body[data-move="down"] .card::before { background: linear-gradient(90deg, #ff4fa3 0%, #ff3d5e 100%); }
+[dir="rtl"] body[data-move="up"] .card::before { background: linear-gradient(90deg, #2ee88a 0%, #ff4fa3 100%); }
+[dir="rtl"] body[data-move="down"] .card::before { background: linear-gradient(90deg, #ff3d5e 0%, #ff4fa3 100%); }
 
-/* mobile: 382 x 499, stacked */
-body[data-layout="mobile"] .card { width: 382px; height: 499px; padding: 22px 22px 18px 26px; display: flex; flex-direction: column; }
-body[data-layout="mobile"] .body { margin-top: 28px; flex: 1; }
-body[data-layout="mobile"] .stat { font-size: 56px; }
-body[data-layout="mobile"] .stat.long { font-size: 46px; }
-body[data-layout="mobile"] .divider { display: none; }
-body[data-layout="mobile"] .col-text { margin-top: 26px; }
-body[data-layout="mobile"] .headline { font-size: 24px; }
-body[data-layout="mobile"] .who { font-size: 13px; margin-top: 10px; }
-body[data-layout="mobile"] .rule { margin: 0 0 12px; }
+/* ---- shared atoms ---------------------------------------------------- */
+.badge { flex-shrink: 0; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line);
+         display: flex; align-items: center; justify-content: center; }
+.badge .logo-img { width: 66%; height: 66%; display: block; }
+.eyebrow { font-family: var(--display); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .16em;
+           color: var(--pink); white-space: nowrap; }
+.ticker { font-family: var(--display); font-weight: 700; color: var(--ink); letter-spacing: -.01em; line-height: 1; }
+.acct { font-family: var(--display); font-size: 10.5px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line);
+        border-radius: 999px; padding: 5px 10px; background: var(--bg-2); white-space: nowrap; flex-shrink: 0; }
+.stat-panel { position: relative; }
+.stat-num { font-family: var(--display); font-weight: 700; color: var(--accent); letter-spacing: -.04em; line-height: .92;
+            font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip-row { margin-top: 10px; }
+.chip { display: inline-block; padding: 5px 10px; border-radius: 999px;
+        background: var(--tint); color: var(--accent); font-family: var(--display); font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+.chip .arrow { font-size: 9px; margin-right: 6px; }
+[dir="rtl"] .chip .arrow { margin-right: 0; margin-left: 6px; }
+[dir="rtl"] .chip-row { text-align: right; }
+.stat-sec { margin-top: 8px; font-family: var(--body); font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.headline { font-family: var(--display); font-weight: 700; color: var(--ink); letter-spacing: -.02em; }
+.disclaimer { font-family: var(--body); font-size: 11px; font-weight: 400; line-height: 1.5; color: var(--ink-3); }
+.brand { font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap;
+         display: inline-flex; align-items: center; gap: 7px; }
+.brand::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pink); }
+.support { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.support svg { width: 13px; height: 13px; stroke: var(--ink-3); fill: none; stroke-width: 1.7; }
+.support a { color: var(--ink-2); text-decoration: none; font-weight: 700; }
+.ltr, bdi { direction: ltr; unicode-bidi: isolate; }
 
-body { width: 390px; height: 720px; overflow: hidden; }
-.popup { width: 390px; height: 720px; display: flex; flex-direction: column;
-         background: linear-gradient(180deg, #0f1e3a 0%, #0b1730 100%); }
-.bar { height: 54px; background: #0b1526; display: flex; align-items: center; gap: 16px; padding: 0 18px;
-       font: 700 22px var(--sans); color: #fff; border-bottom: 3px solid var(--accent); }
-.bar .x { font: 300 24px var(--sans); color: #fff; }
-.bar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.content { flex: 1; padding: 22px 20px 0; position: relative; overflow: hidden; }
-.content .ghost { top: 150px; bottom: auto; font-size: 200px; opacity: .05; }
-.content .head { position: relative; z-index: 1; }
-.content .badge { width: 52px; height: 52px; line-height: 50px; font-size: 13px; border-radius: 14px; }
-.content .kicker { font-size: 11px; }
-.content .symbol { font-size: 20px; margin-top: 4px; }
-.big { margin-top: 32px; display: flex; align-items: baseline; gap: 6px; direction: ltr; }
-.big .arrow { font: 600 22px var(--mono); color: var(--accent); }
-.big .stat { font-size: 54px; }
-.big .stat.long { font-size: 48px; }
-.content .stat-label { font-size: 11px; margin-top: 12px; }
-.content .stat-sub { font-size: 13px; margin-top: 8px; }
-.greet { font: 400 15px var(--sans); color: var(--ink); margin-top: 10px; }
-.h2 { font: 600 28px/1.2 var(--serif); margin-top: 52px; position: relative; z-index: 1; }
-.p { font: 400 13.5px/1.55 var(--sans); color: var(--ink-2); margin-top: 16px; }
-.content .rule { margin-top: 26px; }
-.support { font: 400 13px/1.5 var(--sans); color: var(--ink-2); margin-top: 16px; }
-.support b { color: var(--ink); font-weight: 600; }
-.sign { font: 500 12.5px/1.5 var(--mono); color: var(--ink-2); margin-top: 14px; }
-.sign b { color: var(--ink); }
-.buttons { background: #0b1526; padding: 16px 14px 18px; display: flex; flex-direction: column; gap: 14px; }
-.btn { border: 1px solid #6d7d96; border-radius: 12px; height: 46px; line-height: 44px; text-align: center;
-       font: 500 17px var(--sans); color: #fff; letter-spacing: .04em; }
-.btn.ok { font-weight: 700; }
+/* ---- desktop 496 x 225 ------------------------------------------------ */
+.notif-desktop { position: relative; z-index: 1; width: 496px; height: 225px; display: flex; flex-direction: column; padding: 20px 24px 14px; }
+.notif-desktop .glow.a { width: 360px; height: 360px; right: -140px; top: -200px; }
+.notif-desktop .glow.b { width: 260px; height: 260px; left: -140px; bottom: -160px; }
+.d-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.d-head .badge { width: 42px; height: 42px; border-radius: 12px; }
+.ident { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.ident .ticker { font-size: 17px; }
+.ident .eyebrow { margin-bottom: 4px; }
+.d-main { flex: 1; display: flex; align-items: center; gap: 22px; min-width: 0; margin: 8px 0; }
+.d-main .stat-panel { flex: 0 0 auto; }
+.d-main .stat-num { font-size: 42px; }
+.d-divider { width: 1px; align-self: stretch; background: var(--line); flex-shrink: 0; margin: 6px 0; }
+.d-text { min-width: 0; flex: 1; }
+.d-text .headline { font-size: 18px; line-height: 1.22; }
+.d-text .disclaimer { margin-top: 8px; }
+.d-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* ---- mobile 382 x 499 ------------------------------------------------- */
+.notif-mobile { position: relative; z-index: 1; width: 382px; height: 499px; padding: 24px 22px 18px; }
+.notif-mobile .glow.a { width: 420px; height: 420px; right: -180px; top: -220px; }
+.notif-mobile .glow.b { width: 320px; height: 320px; left: -170px; bottom: -120px; }
+.m-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.m-head .badge { width: 48px; height: 48px; }
+.m-id { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.m-id .ticker { font-size: 19px; }
+.m-id .eyebrow { margin-bottom: 5px; }
+.m-hero { margin-top: 30px; }
+.m-hero .stat-num { font-size: 68px; }
+.m-hero .chip-row { margin-top: 14px; }
+.m-hero .chip { font-size: 11px; }
+.m-hero .stat-sec { font-size: 12.5px; margin-top: 10px; }
+.m-greet { margin-top: 26px; font-family: var(--body); font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.m-greet strong { color: var(--ink); font-weight: 700; }
+.m-headline { margin-top: 6px; font-family: var(--display); font-weight: 700; color: var(--ink); font-size: 25px; line-height: 1.18; letter-spacing: -.025em; }
+.m-disclaimer { margin-top: 12px; font-family: var(--body); font-size: 12px; line-height: 1.5; color: var(--ink-3); }
+.m-foot { position: absolute; left: 22px; right: 22px; bottom: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+.m-support { font-family: var(--body); font-size: 11.5px; line-height: 1.5; color: var(--ink-3); margin-bottom: 6px; }
+.m-support b { color: var(--ink-2); font-weight: 700; }
+.m-signoff { font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--ink); }
+
+/* ---- Hebrew: rows are laid out left-to-right and mirrored by hand, which
+   renders more predictably than a right-to-left flex row; numbers, tickers
+   and the account chip always read left-to-right ------------------------ */
+[dir="rtl"] .d-head, [dir="rtl"] .m-head, [dir="rtl"] .ident, [dir="rtl"] .m-id,
+[dir="rtl"] .d-main, [dir="rtl"] .d-foot { direction: ltr; flex-direction: row-reverse; }
+[dir="rtl"] .eyebrow, [dir="rtl"] .stat-sec, [dir="rtl"] .headline, [dir="rtl"] .disclaimer,
+[dir="rtl"] .m-greet, [dir="rtl"] .m-headline, [dir="rtl"] .m-disclaimer, [dir="rtl"] .m-support, [dir="rtl"] .m-signoff,
+[dir="rtl"] .stat-panel { direction: rtl; text-align: right; }
+[dir="rtl"] .chip { direction: rtl; }
+[dir="rtl"] .ident > div, [dir="rtl"] .m-id > div { text-align: right; }
+[dir="rtl"] .glow.a { right: auto; left: -180px; }
+[dir="rtl"] .glow.b { left: auto; right: -170px; }
+
+body { width: 390px; height: 720px; overflow: hidden; background: var(--bg); }
+.popup { width: 390px; height: 720px; display: flex; flex-direction: column; }
+.bar { height: 52px; flex-shrink: 0; background: var(--bg); display: flex; align-items: center; gap: 14px; padding: 0 18px;
+       font-family: var(--display); font-size: 17px; font-weight: 700; color: var(--ink); }
+.bar .x { font-size: 20px; font-weight: 500; color: var(--ink-3); line-height: 1; }
+.bar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.card { flex: 1; min-height: 0; }
+.notif-mobile { width: 390px; height: 546px; padding: 26px 20px 18px; }
+.m-foot { left: 20px; right: 20px; bottom: 22px; }
+.m-hero { margin-top: 32px; }
+.m-hero .stat-num { font-size: 74px; }
+.m-greet { margin-top: 30px; }
+.m-headline { font-size: 27px; }
+.buttons { flex-shrink: 0; height: 122px; background: var(--bg); border-top: 1px solid var(--line); padding: 16px 18px 0;
+           display: flex; flex-direction: column; gap: 10px; }
+.btn { border-radius: 12px; height: 46px; line-height: 46px; text-align: center; font-family: var(--display); font-size: 15px; font-weight: 700; }
+.btn.ok { background: var(--pink); color: #0a0a0d; }
+.btn.quiet { color: var(--ink-2); font-weight: 500; height: 34px; line-height: 34px; }
 [dir="rtl"] .bar { flex-direction: row-reverse; direction: ltr; }
 [dir="rtl"] .bar .t { direction: rtl; text-align: right; }
-[dir="rtl"] .greet, [dir="rtl"] .h2, [dir="rtl"] .p, [dir="rtl"] .support, [dir="rtl"] .sign { direction: rtl; text-align: right; }
-[dir="rtl"] .big { flex-direction: row-reverse; }
-[dir="rtl"] .content .ghost { left: -10px; right: auto; }
 </style>
 </head>
-<body data-move="up">
+<body data-move="up" data-layout="popup">
 <div class="popup">
-  <div class="bar"><span class="x">&#x2715;</span><span class="t">SMCI is up <bdi>+7.4</bdi>% today</span></div>
-  <div class="content">
-    <div class="ghost">SMCI</div>
-    <div class="head">
-      <div class="badge">SMCI</div>
-      <div>
-        <div class="kicker">MARKET CATALYST</div>
-        <div class="symbol">SMCI</div>
-      </div>
-      <div class="chip">ACC-0417</div>
+  <div class="bar"><span class="x">&#x2715;</span><span class="t"><bdi>SMCI</bdi> is up <bdi>7.4%</bdi> today</span></div>
+  <div class="card">
+<div class="notif-mobile">
+  <div class="glow a"></div><div class="glow b"></div>
+  <div class="m-head">
+    <div class="m-id">
+      <div class="badge ltr"><img class="logo-img" src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%232457a8%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2232%22%20dy%3D%22.36em%22%20text-anchor%3D%22middle%22%20font-family%3D%22Space%20Grotesk%2CRubik%2CArial%2CHelvetica%2Csans-serif%22%20font-weight%3D%22700%22%20font-size%3D%2217%22%20letter-spacing%3D%22-0.5%22%20fill%3D%22%23ffffff%22%3ESMCI%3C%2Ftext%3E%3C%2Fsvg%3E" alt="SMCI" /></div>
+      <div><div class="eyebrow">Market note</div><div class="ticker ltr">SMCI</div></div>
     </div>
-    <div class="big"><span class="arrow">↗</span><span class="stat">+7.4%</span></div>
-    <div class="stat-label">today's move</div>
-    <div class="stat-sub">last $156.70</div>
-    <div class="greet">Hi <b>Eran Blank</b>,</div>
-    <div class="h2">SMCI is up <bdi>+7.4</bdi>% today.</div>
-    <div class="p">This is an automated market update about a stock you've traded. It is informational only, not investment advice or a recommendation to buy or sell.</div>
-    <div class="rule"></div>
-    <div class="support">Questions? Reach us anytime at <b>support@demobroker.example</b>.</div>
-    <div class="sign">Warm regards,<br><b>Demo Broker</b> Team</div>
+    <div class="acct ltr">ACC-0417</div>
   </div>
+  <div class="m-hero stat-panel">
+    <div class="stat-num ltr">+7.4%</div>
+    <div class="chip-row"><span class="chip"><span class="arrow">▲</span><span>Change today</span></span></div>
+    <div class="stat-sec">Last $156.70</div>
+  </div>
+  <p class="m-greet">Hello <strong>Eran Blank</strong>,</p>
+  <h1 class="m-headline"><bdi>SMCI</bdi> is up <bdi>7.4%</bdi> today</h1>
+  <p class="m-disclaimer">You are getting this because you have traded <bdi>SMCI</bdi> before. It is an automated note for information only, not investment advice or a recommendation to buy or sell.</p>
+  <div class="m-foot">
+    <p class="m-support">Questions? Write to <b>support@demobroker.example</b>.</p>
+    <p class="m-signoff">The Demo Broker team</p>
+  </div>
+</div>
+</div>
   <div class="buttons">
-    <div class="btn ok">OK</div>
-    <div class="btn">Don't show this again</div>
+    <div class="btn ok">Got it</div>
+    <div class="btn quiet">Stop these notes</div>
   </div>
 </div>
 </body>

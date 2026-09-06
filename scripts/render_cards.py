@@ -54,7 +54,7 @@ def main() -> int:
         n = notification(lang, name, c)
         for layout, (w, h) in (("desktop", (496, 225)), ("mobile", (382, 499))):
             html_path = OUT / f"{slug}_{layout}.html"
-            html_path.write_text(render_card(n, layout, DAY), encoding="utf-8")
+            html_path.write_text(render_card(n, layout), encoding="utf-8")
             made_png = to_png(html_path, html_path.with_suffix(".png"), w, h) or made_png
         popup_path = OUT / f"{slug}_popup.html"
         popup_path.write_text(render_popup(n), encoding="utf-8")

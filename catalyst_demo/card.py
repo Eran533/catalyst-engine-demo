@@ -1,288 +1,327 @@
 """HTML card for one notification: what the client sees inside the platform popup.
 
-Design: a deep-navy surface with hairline rules, a serif headline, and one large
-monospace focal number (the move, or the 52-week price). The accent colour
-follows direction, emerald for up and coral for down, and that is the only thing
+Design: a near-black surface with white type, pink as the brand colour and one
+focal number in the catalyst colour, green for a good catalyst (up move, 52-week
+high) and red for a bad one (down move, 52-week low). Soft colour glows sit
+behind the content. Space Grotesk carries the headline and the number, Assistant
+the UI text (Rubik covers Hebrew glyphs). The catalyst colour is the only thing
 that changes with the news. No call to action and no advice: the card reports a
 fact about a stock the client already knows.
 
-Two layouts share one template: `desktop` (wide, two columns) and `mobile`
-(tall, stacked). The card fills the white content area of a platform popup; the
-popup's own title bar and buttons are not part of this HTML.
+Two layouts share one stylesheet: `desktop` (496 x 225, two columns) and
+`mobile` (382 x 499, stacked). The card fills the content area of a platform
+popup; `render_popup` adds the phone chrome around the mobile card (title bar
+with a close glyph, the two buttons) so the sample looks the way a client sees it.
+
+Fonts come from Google Fonts. Without a network the browser falls back to the
+system sans stack and the layout still holds.
 """
 from __future__ import annotations
 
-from datetime import date
 from html import escape
+from urllib.parse import quote
 
 from .models import PRICE_MOVE, WK52_HIGH, WK52_LOW, Notification
 
+BRAND = "Demo Broker"
+SUPPORT_EMAIL = "support@demobroker.example"
+
 _TEXT = {
     "en": {
-        "kicker": "MARKET CATALYST",
-        "traded_before": "a stock you have traded before",
-        PRICE_MOVE: "{symbol} is {direction} {change}% today",
-        WK52_HIGH: "{symbol} set a new 52-week high",
-        WK52_LOW: "{symbol} touched a 52-week low",
-        "stat_label": {PRICE_MOVE: "today's move", WK52_HIGH: "52-week high", WK52_LOW: "52-week low"},
-        "last": "last",
-        "prev": {WK52_HIGH: "previous high", WK52_LOW: "previous low"},
-        "footer": "Prices are delayed and for information only. Not investment advice.",
-        "brand": "DEMO BROKER",
+        "title": f"Market note - {BRAND}",
+        "label": "Market note",
         "up": "up", "down": "down",
-        "greeting": "Hi <b>{name}</b>,",
-        "popup_headline": {PRICE_MOVE: "{symbol} is {direction} {change}% today.",
-                           WK52_HIGH: "{symbol} is at a 52-week high.",
-                           WK52_LOW: "{symbol} is at a 52-week low."},
-        "popup_body": "This is an automated market update about a stock you've traded. "
-                      "It is informational only, not investment advice or a recommendation to buy or sell.",
-        "support": "Questions? Reach us anytime at <b>support@demobroker.example</b>.",
-        "signoff": "Warm regards,<br><b>Demo Broker</b> Team",
-        "ok": "OK", "dismiss": "Don't show this again",
+        "headline": {PRICE_MOVE: "{symbol} is {direction} {change} today",
+                     WK52_HIGH: "New 52-week high for {symbol}",
+                     WK52_LOW: "New 52-week low for {symbol}"},
+        "cap": {PRICE_MOVE: "Change today", WK52_HIGH: "52-week high", WK52_LOW: "52-week low"},
+        "sec": {PRICE_MOVE: "Last {price}", WK52_HIGH: "Previous high {price}", WK52_LOW: "Previous low {price}"},
+        "fine": "Automated note about a stock you have traded. Information only, not advice.",
+        "greeting": "Hello {client},",
+        "intro": "You are getting this because you have traded {symbol} before. It is an automated "
+                 "note for information only, not investment advice or a recommendation to buy or sell.",
+        "support": f"Questions? Write to <b>{SUPPORT_EMAIL}</b>.",
+        "signoff": f"The {BRAND} team",
+        "ok": "Got it", "dismiss": "Stop these notes",
     },
     "he": {
-        "kicker": "אירוע שוק",
-        "traded_before": "מניה שסחרת בה בעבר",
-        PRICE_MOVE: "{symbol} {direction} היום {change}%",
-        WK52_HIGH: "{symbol} קבעה שיא 52 שבועות",
-        WK52_LOW: "{symbol} נגעה בשפל 52 שבועות",
-        "stat_label": {PRICE_MOVE: "תנועה היום", WK52_HIGH: "שיא 52 שבועות", WK52_LOW: "שפל 52 שבועות"},
-        "last": "אחרון",
-        "prev": {WK52_HIGH: "שיא קודם", WK52_LOW: "שפל קודם"},
-        "footer": "המחירים מושהים ולמידע בלבד. אין לראות בכך ייעוץ השקעות.",
-        "brand": "DEMO BROKER",
+        "title": f"הערת שוק - {BRAND}",
+        "label": "הערת שוק",
         "up": "עלתה", "down": "ירדה",
-        "greeting": "שלום <b>{name}</b>,",
-        "popup_headline": {PRICE_MOVE: "{symbol} {direction} היום {change}%.",
-                           WK52_HIGH: "{symbol} בשיא 52 שבועות.",
-                           WK52_LOW: "{symbol} בשפל 52 שבועות."},
-        "popup_body": "זהו עדכון שוק אוטומטי על מניה שסחרת בה. "
-                      "המידע הוא לידיעה בלבד ואינו ייעוץ השקעות או המלצה לקנות או למכור.",
-        "support": "שאלות? אנחנו זמינים בכתובת <b>support@demobroker.example</b>.",
-        "signoff": "בברכה,<br>צוות <b>Demo Broker</b>",
-        "ok": "אישור", "dismiss": "אל תציגו שוב",
+        "headline": {PRICE_MOVE: "{symbol} {direction} היום ב-{change}",
+                     WK52_HIGH: "שיא 52 שבועות חדש ל-{symbol}",
+                     WK52_LOW: "שפל 52 שבועות חדש ל-{symbol}"},
+        "cap": {PRICE_MOVE: "שינוי היום", WK52_HIGH: "שיא 52 שבועות", WK52_LOW: "שפל 52 שבועות"},
+        "sec": {PRICE_MOVE: "אחרון {price}", WK52_HIGH: "שיא קודם {price}", WK52_LOW: "שפל קודם {price}"},
+        "fine": "הערה אוטומטית על מניה שסחרת בה. לידיעה בלבד, לא ייעוץ.",
+        "greeting": "שלום {client},",
+        "intro": "קיבלת הודעה זו כי סחרת בעבר ב-{symbol}. זוהי הערה אוטומטית לידיעה בלבד, "
+                 "לא ייעוץ השקעות ולא המלצה לקנות או למכור.",
+        "support": f"שאלות? כתבו לנו ל-<b>{SUPPORT_EMAIL}</b>.",
+        "signoff": f"צוות {BRAND}",
+        "ok": "הבנתי", "dismiss": "להפסיק הערות כאלה",
     },
 }
+
+# Coloured ticker tiles stand in for company logos. Unknown symbols get a colour
+# picked from the ticker itself.
+_LOGO_COLORS = {
+    "NVDA": "#5a9e1c", "SMCI": "#2457a8", "SOXL": "#5b3fd1", "RIVN": "#d9a50f",
+    "UNH": "#1f5fe0", "AAPL": "#1d1d1f", "TSLA": "#c8102e", "AMD": "#222222",
+    "MSFT": "#0f7ad6", "AMZN": "#e08a00", "META": "#0866ff", "PLTR": "#101820",
+}
+_LOGO_PALETTE = ["#1f5fe0", "#0f8b8d", "#b3382a", "#6c3fa0", "#c2621b", "#1e7a45"]
+
+
+def logo_data_uri(symbol: str) -> str:
+    """An inline SVG tile: a coloured rounded square with the ticker on it."""
+    sym = escape(symbol.upper())
+    fill = _LOGO_COLORS.get(symbol.upper()) or _LOGO_PALETTE[sum(map(ord, symbol)) % len(_LOGO_PALETTE)]
+    size = {1: 30, 2: 26, 3: 21, 4: 17}.get(len(symbol), 14)
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+        f'<rect width="64" height="64" rx="16" fill="{fill}"/>'
+        f'<text x="32" y="32" dy=".36em" text-anchor="middle" font-family="Space Grotesk,Rubik,Arial,Helvetica,sans-serif" '
+        f'font-weight="700" font-size="{size}" letter-spacing="-0.5" fill="#ffffff">{sym}</text></svg>'
+    )
+    return "data:image/svg+xml;charset=utf-8," + quote(svg, safe="")
+
+
+_FONTS = (
+    '<link rel="preconnect" href="https://fonts.googleapis.com" />\n'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />\n'
+    '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700'
+    '&family=Rubik:wght@500;700;800&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet" />'
+)
 
 _CSS = """
 :root {
-  --paper: #0d1b34; --paper-2: #16294a; --ink: #eef2f9; --ink-2: #aab7cd; --ink-3: #7387a3;
-  --line: #233655; --up: #2fd39a; --down: #ff6f61; --accent: var(--ink);
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: "Heebo", "Segoe UI", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  --bg: #0a0a0d; --bg-2: #131318; --ink: #ffffff; --ink-2: #b9b9c6; --ink-3: #75758a;
+  --line: #23232c; --pink: #ff4fa3; --up: #2ee88a; --down: #ff3d5e;
+  --accent: var(--ink); --tint: rgba(255,255,255,0.06);
+  --display: "Space Grotesk", "Rubik", "Segoe UI", system-ui, sans-serif;
+  --body: "Assistant", "Rubik", "Segoe UI", system-ui, sans-serif;
 }
-body[data-move="up"]   { --accent: var(--up); }
-body[data-move="down"] { --accent: var(--down); }
+body[data-move="up"]   { --accent: var(--up);   --tint: rgba(46,232,138,0.12); }
+body[data-move="down"] { --accent: var(--down); --tint: rgba(255,61,94,0.12); }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font-family: var(--sans); }
-.card { position: relative; overflow: hidden; background: var(--paper); }
-.card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent); }
-[dir="rtl"] .card::before { inset: 0 0 0 auto; }
-.ghost { position: absolute; right: -8px; bottom: -28px; font: 600 150px var(--mono); color: var(--accent); opacity: .06; }
-[dir="rtl"] .ghost { right: auto; left: -8px; }
-.head { display: flex; align-items: center; gap: 12px; }
-.badge { width: 44px; height: 44px; border-radius: 12px; background: var(--paper-2); border: 1px solid var(--line);
-         text-align: center; line-height: 42px; font: 600 12px/42px var(--mono); color: var(--accent);
-         flex-shrink: 0; direction: ltr; }
-/* the header row is laid out left-to-right and mirrored by hand for Hebrew,
-   which renders more predictably than a right-to-left flex row */
-.head, .body, .foot { direction: ltr; }
-[dir="rtl"] .head, [dir="rtl"] .body, [dir="rtl"] .foot { flex-direction: row-reverse; }
-[dir="rtl"] .kicker, [dir="rtl"] .symbol, [dir="rtl"] .col-text, [dir="rtl"] .disclaimer,
-[dir="rtl"] .stat-label { direction: rtl; text-align: right; }
-.stat.long { font-size: 34px; }
-/* numbers and dates always read left-to-right, even inside a Hebrew card */
-.stat, .stat-sub, .chip, bdi { direction: ltr; unicode-bidi: isolate; }
-[dir="rtl"] .stat, [dir="rtl"] .stat-sub { text-align: right; }
-.kicker { font: 600 10px var(--sans); letter-spacing: .18em; color: var(--ink-3); }
-.symbol { font: 600 15px var(--mono); margin-top: 3px; }
-.chip { margin-inline-start: auto; font: 500 10px var(--mono); color: var(--ink-3); border: 1px solid var(--line);
-        border-radius: 999px; padding: 4px 10px; background: var(--paper-2); white-space: nowrap; }
-.stat { font: 600 44px var(--mono); color: var(--accent); letter-spacing: -.02em; line-height: 1; }
-.stat-label { font: 500 10px var(--sans); letter-spacing: .14em; color: var(--ink-2); margin-top: 6px; }
-.stat-sub { font: 500 10.5px var(--mono); color: var(--ink-3); margin-top: 3px; }
-.headline { font: 600 19px/1.25 var(--serif); }
-.who { font: 400 12px/1.5 var(--sans); color: var(--ink-2); margin-top: 6px; }
-.rule { height: 1px; background: var(--line); }
-.foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.brand { font: 600 11px var(--mono); color: var(--ink-2); white-space: nowrap; }
-.disclaimer { font: 400 10px/1.4 var(--sans); color: var(--ink-3); }
+body { font-family: var(--body); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
 
-/* desktop: 496 x 225, two columns */
-body[data-layout="desktop"] .card { width: 496px; height: 225px; padding: 18px 20px 14px 24px; }
-body[data-layout="desktop"] .body { display: flex; gap: 20px; margin-top: 14px; }
-body[data-layout="desktop"] .col-stat { flex: 0 0 150px; }
-body[data-layout="desktop"] .divider { width: 1px; background: var(--line); }
-body[data-layout="desktop"] .col-text { flex: 1; }
-body[data-layout="desktop"] .rule { margin: 14px 0 10px; }
+.card { position: relative; overflow: hidden; background: var(--bg); color: var(--ink); }
+/* soft colour glows: the catalyst colour top-right, the brand pink bottom-left */
+.glow { position: absolute; border-radius: 50%; z-index: 0; }
+/* (colours written out: WeasyPrint cannot resolve var() inside gradients) */
+.glow.a { opacity: .28; background: radial-gradient(circle, #ffffff 0%, rgba(0,0,0,0) 70%); }
+body[data-move="up"]   .glow.a { background: radial-gradient(circle, #2ee88a 0%, rgba(0,0,0,0) 70%); }
+body[data-move="down"] .glow.a { background: radial-gradient(circle, #ff3d5e 0%, rgba(0,0,0,0) 70%); }
+.glow.b { opacity: .2; background: radial-gradient(circle, #ff4fa3 0%, rgba(0,0,0,0) 70%); }
+/* brand hairline along the top: pink fading into the catalyst colour */
+.card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 5; background: #ff4fa3; }
+body[data-move="up"]   .card::before { background: linear-gradient(90deg, #ff4fa3 0%, #2ee88a 100%); }
+body[data-move="down"] .card::before { background: linear-gradient(90deg, #ff4fa3 0%, #ff3d5e 100%); }
+[dir="rtl"] body[data-move="up"] .card::before { background: linear-gradient(90deg, #2ee88a 0%, #ff4fa3 100%); }
+[dir="rtl"] body[data-move="down"] .card::before { background: linear-gradient(90deg, #ff3d5e 0%, #ff4fa3 100%); }
 
-/* mobile: 382 x 499, stacked */
-body[data-layout="mobile"] .card { width: 382px; height: 499px; padding: 22px 22px 18px 26px; display: flex; flex-direction: column; }
-body[data-layout="mobile"] .body { margin-top: 28px; flex: 1; }
-body[data-layout="mobile"] .stat { font-size: 56px; }
-body[data-layout="mobile"] .stat.long { font-size: 46px; }
-body[data-layout="mobile"] .divider { display: none; }
-body[data-layout="mobile"] .col-text { margin-top: 26px; }
-body[data-layout="mobile"] .headline { font-size: 24px; }
-body[data-layout="mobile"] .who { font-size: 13px; margin-top: 10px; }
-body[data-layout="mobile"] .rule { margin: 0 0 12px; }
+/* ---- shared atoms ---------------------------------------------------- */
+.badge { flex-shrink: 0; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line);
+         display: flex; align-items: center; justify-content: center; }
+.badge .logo-img { width: 66%; height: 66%; display: block; }
+.eyebrow { font-family: var(--display); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .16em;
+           color: var(--pink); white-space: nowrap; }
+.ticker { font-family: var(--display); font-weight: 700; color: var(--ink); letter-spacing: -.01em; line-height: 1; }
+.acct { font-family: var(--display); font-size: 10.5px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line);
+        border-radius: 999px; padding: 5px 10px; background: var(--bg-2); white-space: nowrap; flex-shrink: 0; }
+.stat-panel { position: relative; }
+.stat-num { font-family: var(--display); font-weight: 700; color: var(--accent); letter-spacing: -.04em; line-height: .92;
+            font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip-row { margin-top: 10px; }
+.chip { display: inline-block; padding: 5px 10px; border-radius: 999px;
+        background: var(--tint); color: var(--accent); font-family: var(--display); font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+.chip .arrow { font-size: 9px; margin-right: 6px; }
+[dir="rtl"] .chip .arrow { margin-right: 0; margin-left: 6px; }
+[dir="rtl"] .chip-row { text-align: right; }
+.stat-sec { margin-top: 8px; font-family: var(--body); font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.headline { font-family: var(--display); font-weight: 700; color: var(--ink); letter-spacing: -.02em; }
+.disclaimer { font-family: var(--body); font-size: 11px; font-weight: 400; line-height: 1.5; color: var(--ink-3); }
+.brand { font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap;
+         display: inline-flex; align-items: center; gap: 7px; }
+.brand::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pink); }
+.support { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.support svg { width: 13px; height: 13px; stroke: var(--ink-3); fill: none; stroke-width: 1.7; }
+.support a { color: var(--ink-2); text-decoration: none; font-weight: 700; }
+.ltr, bdi { direction: ltr; unicode-bidi: isolate; }
+
+/* ---- desktop 496 x 225 ------------------------------------------------ */
+.notif-desktop { position: relative; z-index: 1; width: 496px; height: 225px; display: flex; flex-direction: column; padding: 20px 24px 14px; }
+.notif-desktop .glow.a { width: 360px; height: 360px; right: -140px; top: -200px; }
+.notif-desktop .glow.b { width: 260px; height: 260px; left: -140px; bottom: -160px; }
+.d-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.d-head .badge { width: 42px; height: 42px; border-radius: 12px; }
+.ident { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.ident .ticker { font-size: 17px; }
+.ident .eyebrow { margin-bottom: 4px; }
+.d-main { flex: 1; display: flex; align-items: center; gap: 22px; min-width: 0; margin: 8px 0; }
+.d-main .stat-panel { flex: 0 0 auto; }
+.d-main .stat-num { font-size: 42px; }
+.d-divider { width: 1px; align-self: stretch; background: var(--line); flex-shrink: 0; margin: 6px 0; }
+.d-text { min-width: 0; flex: 1; }
+.d-text .headline { font-size: 18px; line-height: 1.22; }
+.d-text .disclaimer { margin-top: 8px; }
+.d-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* ---- mobile 382 x 499 ------------------------------------------------- */
+.notif-mobile { position: relative; z-index: 1; width: 382px; height: 499px; padding: 24px 22px 18px; }
+.notif-mobile .glow.a { width: 420px; height: 420px; right: -180px; top: -220px; }
+.notif-mobile .glow.b { width: 320px; height: 320px; left: -170px; bottom: -120px; }
+.m-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.m-head .badge { width: 48px; height: 48px; }
+.m-id { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.m-id .ticker { font-size: 19px; }
+.m-id .eyebrow { margin-bottom: 5px; }
+.m-hero { margin-top: 30px; }
+.m-hero .stat-num { font-size: 68px; }
+.m-hero .chip-row { margin-top: 14px; }
+.m-hero .chip { font-size: 11px; }
+.m-hero .stat-sec { font-size: 12.5px; margin-top: 10px; }
+.m-greet { margin-top: 26px; font-family: var(--body); font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.m-greet strong { color: var(--ink); font-weight: 700; }
+.m-headline { margin-top: 6px; font-family: var(--display); font-weight: 700; color: var(--ink); font-size: 25px; line-height: 1.18; letter-spacing: -.025em; }
+.m-disclaimer { margin-top: 12px; font-family: var(--body); font-size: 12px; line-height: 1.5; color: var(--ink-3); }
+.m-foot { position: absolute; left: 22px; right: 22px; bottom: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+.m-support { font-family: var(--body); font-size: 11.5px; line-height: 1.5; color: var(--ink-3); margin-bottom: 6px; }
+.m-support b { color: var(--ink-2); font-weight: 700; }
+.m-signoff { font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--ink); }
+
+/* ---- Hebrew: rows are laid out left-to-right and mirrored by hand, which
+   renders more predictably than a right-to-left flex row; numbers, tickers
+   and the account chip always read left-to-right ------------------------ */
+[dir="rtl"] .d-head, [dir="rtl"] .m-head, [dir="rtl"] .ident, [dir="rtl"] .m-id,
+[dir="rtl"] .d-main, [dir="rtl"] .d-foot { direction: ltr; flex-direction: row-reverse; }
+[dir="rtl"] .eyebrow, [dir="rtl"] .stat-sec, [dir="rtl"] .headline, [dir="rtl"] .disclaimer,
+[dir="rtl"] .m-greet, [dir="rtl"] .m-headline, [dir="rtl"] .m-disclaimer, [dir="rtl"] .m-support, [dir="rtl"] .m-signoff,
+[dir="rtl"] .stat-panel { direction: rtl; text-align: right; }
+[dir="rtl"] .chip { direction: rtl; }
+[dir="rtl"] .ident > div, [dir="rtl"] .m-id > div { text-align: right; }
+[dir="rtl"] .glow.a { right: auto; left: -180px; }
+[dir="rtl"] .glow.b { left: auto; right: -170px; }
 """
 
-_TEMPLATE = """<!doctype html>
+_DESKTOP = """
+<div class="notif-desktop">
+  <div class="glow a"></div><div class="glow b"></div>
+  <div class="d-head">
+    <div class="ident">
+      <div class="badge ltr"><img class="logo-img" src="{logo}" alt="{symbol}" /></div>
+      <div><div class="eyebrow">{label}</div><div class="ticker ltr">{symbol}</div></div>
+    </div>
+    <div class="acct ltr">{account}</div>
+  </div>
+  <div class="d-main">
+    <div class="stat-panel">
+      <div class="stat-num ltr">{stat}</div>
+      <div class="chip-row"><span class="chip"><span class="arrow">{arrow}</span><span>{stat_cap}</span></span></div>
+      <div class="stat-sec">{stat_sec}</div>
+    </div>
+    <div class="d-divider"></div>
+    <div class="d-text">
+      <h1 class="headline">{headline}</h1>
+      <p class="disclaimer">{fine}</p>
+    </div>
+  </div>
+  <div class="d-foot">
+    <span class="support">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      <a href="mailto:{support_email}" class="ltr">{support_email}</a>
+    </span>
+    <span class="brand ltr">{brand}</span>
+  </div>
+</div>
+"""
+
+_MOBILE = """
+<div class="notif-mobile">
+  <div class="glow a"></div><div class="glow b"></div>
+  <div class="m-head">
+    <div class="m-id">
+      <div class="badge ltr"><img class="logo-img" src="{logo}" alt="{symbol}" /></div>
+      <div><div class="eyebrow">{label}</div><div class="ticker ltr">{symbol}</div></div>
+    </div>
+    <div class="acct ltr">{account}</div>
+  </div>
+  <div class="m-hero stat-panel">
+    <div class="stat-num ltr">{stat}</div>
+    <div class="chip-row"><span class="chip"><span class="arrow">{arrow}</span><span>{stat_cap}</span></span></div>
+    <div class="stat-sec">{stat_sec}</div>
+  </div>
+  <p class="m-greet">{greeting}</p>
+  <h1 class="m-headline">{headline}</h1>
+  <p class="m-disclaimer">{intro}</p>
+  <div class="m-foot">
+    <p class="m-support">{support}</p>
+    <p class="m-signoff">{signoff}</p>
+  </div>
+</div>
+"""
+
+_CARD_TEMPLATE = """<!doctype html>
 <html lang="{lang}" dir="{dir}">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>{title}</title>
+{fonts}
 <style>{css}</style>
 </head>
 <body data-move="{move}" data-layout="{layout}">
-<div class="card">
-  <div class="ghost">{arrow}</div>
-  <div class="head">
-    <div class="badge">{badge}</div>
-    <div>
-      <div class="kicker">{kicker}</div>
-      <div class="symbol">{symbol}</div>
-    </div>
-    <div class="chip">{chip}</div>
-  </div>
-  <div class="body">
-    <div class="col-stat">
-      <div class="{stat_class}">{stat}</div>
-      <div class="stat-label">{stat_label}</div>
-      <div class="stat-sub">{stat_sub}</div>
-    </div>
-    <div class="divider"></div>
-    <div class="col-text">
-      <div class="headline">{headline}</div>
-      <div class="who">{who}</div>
-    </div>
-  </div>
-  <div class="rule"></div>
-  <div class="foot">
-    <div class="brand">{brand}</div>
-    <div class="disclaimer">{footer}</div>
-  </div>
-</div>
+<div class="card">{layout_html}</div>
 </body>
 </html>
 """
 
-
-def render_card(n: Notification, layout: str = "desktop", on: date = None) -> str:
-    """Self-contained HTML for one notification. `layout` is desktop or mobile."""
-    lang = n.language if n.language in _TEXT else "en"
-    t = _TEXT[lang]
-    c = n.catalyst
-    on = on or n.sent_on or date.today()
-    change = c.detail.get("change_pct", 0.0)
-    price = c.detail.get("price", 0.0)
-
-    if c.kind == PRICE_MOVE:
-        stat = f"{change:+.1f}%"
-        stat_sub = f"{t['last']} ${price:,.2f}"
-    else:
-        stat = f"${price:,.2f}"
-        prev_key = "prev_high" if c.kind == WK52_HIGH else "prev_low"
-        stat_sub = f"{t['prev'][c.kind]} ${c.detail.get(prev_key, 0.0):,.2f}"
-
-    # Escape the pieces, then wrap the number in <bdi> so a minus sign stays on
-    # the left of the digits inside a right-to-left sentence.
-    headline = t[c.kind].format(
-        symbol=escape(c.symbol), direction=t[c.direction],
-        change=f"<bdi>{change:+.1f}</bdi>",
-    )
-    who = f"{escape(n.client_name)} · {t['traded_before']}"
-
-    return _TEMPLATE.format(
-        lang=lang, dir="rtl" if lang == "he" else "ltr", title=escape(n.subject), css=_CSS,
-        move=c.direction, layout=layout, arrow="↗" if c.direction == "up" else "↘",
-        badge=escape(c.symbol[:4]), kicker=t["kicker"], symbol=escape(c.symbol),
-        chip=on.strftime("%d %b %Y").upper(), stat=stat, stat_label=t["stat_label"][c.kind],
-        stat_class="stat long" if len(stat) > 5 else "stat",
-        stat_sub=stat_sub, headline=headline, who=who, brand=t["brand"], footer=t["footer"],
-    )
-
-
 # ---------------------------------------------------------------------------
-# Full phone popup: the card plus the platform chrome around it (title bar with
-# a close glyph, accent rule, greeting, disclaimer, support line, sign-off and
-# the two buttons). This is what a client sees on their phone.
+# Full phone popup: the mobile card plus the platform chrome around it.
 # ---------------------------------------------------------------------------
 
 _POPUP_CSS = _CSS + """
-body { width: 390px; height: 720px; overflow: hidden; }
-.popup { width: 390px; height: 720px; display: flex; flex-direction: column;
-         background: linear-gradient(180deg, #0f1e3a 0%, #0b1730 100%); }
-.bar { height: 54px; background: #0b1526; display: flex; align-items: center; gap: 16px; padding: 0 18px;
-       font: 700 22px var(--sans); color: #fff; border-bottom: 3px solid var(--accent); }
-.bar .x { font: 300 24px var(--sans); color: #fff; }
-.bar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.content { flex: 1; padding: 22px 20px 0; position: relative; overflow: hidden; }
-.content .ghost { top: 150px; bottom: auto; font-size: 200px; opacity: .05; }
-.content .head { position: relative; z-index: 1; }
-.content .badge { width: 52px; height: 52px; line-height: 50px; font-size: 13px; border-radius: 14px; }
-.content .kicker { font-size: 11px; }
-.content .symbol { font-size: 20px; margin-top: 4px; }
-.big { margin-top: 32px; display: flex; align-items: baseline; gap: 6px; direction: ltr; }
-.big .arrow { font: 600 22px var(--mono); color: var(--accent); }
-.big .stat { font-size: 54px; }
-.big .stat.long { font-size: 48px; }
-.content .stat-label { font-size: 11px; margin-top: 12px; }
-.content .stat-sub { font-size: 13px; margin-top: 8px; }
-.greet { font: 400 15px var(--sans); color: var(--ink); margin-top: 10px; }
-.h2 { font: 600 28px/1.2 var(--serif); margin-top: 52px; position: relative; z-index: 1; }
-.p { font: 400 13.5px/1.55 var(--sans); color: var(--ink-2); margin-top: 16px; }
-.content .rule { margin-top: 26px; }
-.support { font: 400 13px/1.5 var(--sans); color: var(--ink-2); margin-top: 16px; }
-.support b { color: var(--ink); font-weight: 600; }
-.sign { font: 500 12.5px/1.5 var(--mono); color: var(--ink-2); margin-top: 14px; }
-.sign b { color: var(--ink); }
-.buttons { background: #0b1526; padding: 16px 14px 18px; display: flex; flex-direction: column; gap: 14px; }
-.btn { border: 1px solid #6d7d96; border-radius: 12px; height: 46px; line-height: 44px; text-align: center;
-       font: 500 17px var(--sans); color: #fff; letter-spacing: .04em; }
-.btn.ok { font-weight: 700; }
+body { width: 390px; height: 720px; overflow: hidden; background: var(--bg); }
+.popup { width: 390px; height: 720px; display: flex; flex-direction: column; }
+.bar { height: 52px; flex-shrink: 0; background: var(--bg); display: flex; align-items: center; gap: 14px; padding: 0 18px;
+       font-family: var(--display); font-size: 17px; font-weight: 700; color: var(--ink); }
+.bar .x { font-size: 20px; font-weight: 500; color: var(--ink-3); line-height: 1; }
+.bar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.card { flex: 1; min-height: 0; }
+.notif-mobile { width: 390px; height: 546px; padding: 26px 20px 18px; }
+.m-foot { left: 20px; right: 20px; bottom: 22px; }
+.m-hero { margin-top: 32px; }
+.m-hero .stat-num { font-size: 74px; }
+.m-greet { margin-top: 30px; }
+.m-headline { font-size: 27px; }
+.buttons { flex-shrink: 0; height: 122px; background: var(--bg); border-top: 1px solid var(--line); padding: 16px 18px 0;
+           display: flex; flex-direction: column; gap: 10px; }
+.btn { border-radius: 12px; height: 46px; line-height: 46px; text-align: center; font-family: var(--display); font-size: 15px; font-weight: 700; }
+.btn.ok { background: var(--pink); color: #0a0a0d; }
+.btn.quiet { color: var(--ink-2); font-weight: 500; height: 34px; line-height: 34px; }
 [dir="rtl"] .bar { flex-direction: row-reverse; direction: ltr; }
 [dir="rtl"] .bar .t { direction: rtl; text-align: right; }
-[dir="rtl"] .greet, [dir="rtl"] .h2, [dir="rtl"] .p, [dir="rtl"] .support, [dir="rtl"] .sign { direction: rtl; text-align: right; }
-[dir="rtl"] .big { flex-direction: row-reverse; }
-[dir="rtl"] .content .ghost { left: -10px; right: auto; }
 """
 
 _POPUP_TEMPLATE = """<!doctype html>
 <html lang="{lang}" dir="{dir}">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>{title}</title>
+{fonts}
 <style>{css}</style>
 </head>
-<body data-move="{move}">
+<body data-move="{move}" data-layout="popup">
 <div class="popup">
   <div class="bar"><span class="x">&#x2715;</span><span class="t">{bar_title}</span></div>
-  <div class="content">
-    <div class="ghost">{symbol}</div>
-    <div class="head">
-      <div class="badge">{badge}</div>
-      <div>
-        <div class="kicker">{kicker}</div>
-        <div class="symbol">{symbol}</div>
-      </div>
-      <div class="chip">{account}</div>
-    </div>
-    <div class="big"><span class="arrow">{arrow}</span><span class="{stat_class}">{stat}</span></div>
-    <div class="stat-label">{stat_label}</div>
-    <div class="stat-sub">{stat_sub}</div>
-    <div class="greet">{greeting}</div>
-    <div class="h2">{headline}</div>
-    <div class="p">{body}</div>
-    <div class="rule"></div>
-    <div class="support">{support}</div>
-    <div class="sign">{signoff}</div>
-  </div>
+  <div class="card">{layout_html}</div>
   <div class="buttons">
     <div class="btn ok">{ok}</div>
-    <div class="btn">{dismiss}</div>
+    <div class="btn quiet">{dismiss}</div>
   </div>
 </div>
 </body>
@@ -290,30 +329,54 @@ _POPUP_TEMPLATE = """<!doctype html>
 """
 
 
-def render_popup(n: Notification) -> str:
-    """The full phone popup for one notification, 390 x 720."""
+def _fmt_pct(chg: float, signed: bool = True) -> str:
+    """Percent with a typographic sign, e.g. '+6.1%' / '−4.3%' (or bare when unsigned)."""
+    sign = ("+" if chg >= 0 else "−") if signed else ""
+    return f"{sign}{abs(chg):.1f}%"
+
+
+def _fmt_price(value) -> str:
+    return f"${float(value):,.2f}"
+
+
+def _fields(n: Notification) -> dict:
+    """Everything the templates need for one notification, already escaped."""
     lang = n.language if n.language in _TEXT else "en"
     t = _TEXT[lang]
     c = n.catalyst
-    change = c.detail.get("change_pct", 0.0)
-    price = c.detail.get("price", 0.0)
-
+    price = _fmt_price(c.detail.get("price", 0.0))
+    chg = c.detail.get("change_pct", 0.0)
     if c.kind == PRICE_MOVE:
-        stat, stat_sub = f"{change:+.1f}%", f"{t['last']} ${price:,.2f}"
+        stat = _fmt_pct(chg)
+        stat_sec = t["sec"][c.kind].format(price=price)
     else:
-        prev_key = "prev_high" if c.kind == WK52_HIGH else "prev_low"
-        stat, stat_sub = f"${price:,.2f}", f"{t['prev'][c.kind]} ${c.detail.get(prev_key, 0.0):,.2f}"
-
-    headline = t["popup_headline"][c.kind].format(
-        symbol=escape(c.symbol), direction=t[c.direction], change=f"<bdi>{change:+.1f}</bdi>")
-
-    return _POPUP_TEMPLATE.format(
-        lang=lang, dir="rtl" if lang == "he" else "ltr", title=escape(n.subject), css=_POPUP_CSS,
-        bar_title=headline.rstrip("."),
-        move=c.direction, arrow="↗" if c.direction == "up" else "↘", badge=escape(c.symbol[:4]),
-        kicker=t["kicker"], symbol=escape(c.symbol), account=escape(n.account_id),
-        stat=stat, stat_class="stat long" if len(stat) > 5 else "stat",
-        stat_label=t["stat_label"][c.kind], stat_sub=stat_sub,
-        greeting=t["greeting"].format(name=escape(n.client_name)), headline=headline,
-        body=t["popup_body"], support=t["support"], signoff=t["signoff"], ok=t["ok"], dismiss=t["dismiss"],
+        stat = price
+        prev = c.detail.get("prev_high" if c.kind == WK52_HIGH else "prev_low", 0.0)
+        stat_sec = t["sec"][c.kind].format(price=_fmt_price(prev))
+    symbol = escape(c.symbol)
+    # <bdi> keeps the number reading left-to-right inside a Hebrew sentence
+    headline = t["headline"][c.kind].format(
+        symbol=f"<bdi>{symbol}</bdi>", direction=t[c.direction], change=f"<bdi>{_fmt_pct(chg, signed=False)}</bdi>")
+    return dict(
+        lang=lang, dir="rtl" if lang == "he" else "ltr", title=escape(t["title"]), fonts=_FONTS,
+        move=c.direction, arrow="▲" if c.direction == "up" else "▼",
+        symbol=symbol, logo=logo_data_uri(c.symbol), label=t["label"], account=escape(n.account_id),
+        stat=stat, stat_cap=t["cap"][c.kind], stat_sec=stat_sec, headline=headline, fine=t["fine"],
+        greeting=t["greeting"].format(client=f"<strong>{escape(n.client_name)}</strong>"),
+        intro=t["intro"].format(symbol=f"<bdi>{symbol}</bdi>"),
+        support=t["support"], signoff=t["signoff"], support_email=SUPPORT_EMAIL, brand=BRAND,
+        ok=t["ok"], dismiss=t["dismiss"],
     )
+
+
+def render_card(n: Notification, layout: str = "desktop") -> str:
+    """Self-contained HTML for one notification. `layout` is desktop or mobile."""
+    f = _fields(n)
+    block = _MOBILE if layout == "mobile" else _DESKTOP
+    return _CARD_TEMPLATE.format(css=_CSS, layout=layout, layout_html=block.format(**f), **f)
+
+
+def render_popup(n: Notification) -> str:
+    """The full phone popup for one notification, 390 x 720."""
+    f = _fields(n)
+    return _POPUP_TEMPLATE.format(css=_POPUP_CSS, bar_title=f["headline"], layout_html=_MOBILE.format(**f), **f)
