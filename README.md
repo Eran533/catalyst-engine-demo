@@ -39,10 +39,16 @@ the only thing that changes with the news. No call to action, no advice.
   <img src="docs/cards/soxl_down_he_popup.png" width="240" alt="SOXL down 5.9%, Hebrew, full phone popup">
   <img src="docs/cards/smci_up_en_mobile.png" width="240" alt="SMCI up 7.4%, English, mobile card only">
 </p>
+<p>
+  <img src="docs/cards/rivn_low_en_popup.png" width="240" alt="RIVN 52-week low, English, full phone popup">
+  <img src="docs/cards/soxl_down_en_popup.png" width="240" alt="SOXL down 5.9%, English, full phone popup">
+  <img src="docs/cards/rivn_low_en_desktop.png" width="496" alt="RIVN 52-week low, English, desktop layout">
+</p>
 
 The first two are the full phone popup: platform title bar, greeting, disclaimer,
 support line, sign-off and buttons. The third is the card on its own, as embedded
-in a desktop popup. Black surface, white type, pink for the brand, green for a good
+in a desktop popup. The last row shows the same RIVN and SOXL alerts in English,
+so the two languages can be compared side by side. Black surface, white type, pink for the brand, green for a good
 catalyst and red for a bad one. Space Grotesk carries the headline and the focal
 number, Assistant the rest (Google Fonts, with system fallbacks), and a coloured
 ticker tile stands in for a company logo.
