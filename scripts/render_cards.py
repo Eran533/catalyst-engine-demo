@@ -22,8 +22,10 @@ OUT = Path(__file__).resolve().parents[1] / "docs" / "cards"
 SAMPLES = [
     ("smci_up_en", "en", "Eran Blank", Catalyst(PRICE_MOVE, "SMCI", {"change_pct": 7.4, "price": 156.70})),
     ("soxl_down_he", "he", "Eran Blank", Catalyst(PRICE_MOVE, "SOXL", {"change_pct": -5.9, "price": 199.40})),
+    ("soxl_down_en", "en", "Eran Blank", Catalyst(PRICE_MOVE, "SOXL", {"change_pct": -5.9, "price": 199.40})),
     ("nvda_high_en", "en", "Eran Blank", Catalyst(WK52_HIGH, "NVDA", {"price": 385.18, "prev_high": 377.63})),
     ("rivn_low_he", "he", "Eran Blank", Catalyst(WK52_LOW, "RIVN", {"price": 353.62, "prev_low": 360.84})),
+    ("rivn_low_en", "en", "Eran Blank", Catalyst(WK52_LOW, "RIVN", {"price": 353.62, "prev_low": 360.84})),
 ]
 
 
