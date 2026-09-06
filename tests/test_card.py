@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from catalyst_demo.card import render_card
+from catalyst_demo.card import render_card, render_popup
 from catalyst_demo.models import PRICE_MOVE, WK52_HIGH, Catalyst, Notification
 
 DAY = date(2026, 9, 4)
@@ -28,6 +28,18 @@ def test_52w_high_card_shows_the_price_and_previous_high():
 def test_hebrew_card_is_rtl_and_coral_for_a_drop():
     html = render_card(notif("he", PRICE_MOVE, {"change_pct": -5.9, "price": 199.4}, "SOXL"))
     assert 'dir="rtl"' in html and 'data-move="down"' in html and "ירדה" in html
+
+
+def test_popup_wraps_the_card_in_platform_chrome():
+    html = render_popup(notif("en", WK52_HIGH, {"price": 427.89, "prev_high": 415.53}, "UNH"))
+    for piece in ('class="bar"', "Hi <b>Maya Cohen</b>,", "UNH is at a 52-week high.",
+                  "support@demobroker.example", "Don't show this again", 'class="chip">ACC-1<'):
+        assert piece in html
+
+
+def test_hebrew_popup_uses_hebrew_buttons():
+    html = render_popup(notif("he", PRICE_MOVE, {"change_pct": -5.9, "price": 1.0}))
+    assert 'dir="rtl"' in html and "אל תציגו שוב" in html and "אישור" in html
 
 
 def test_client_name_is_escaped():

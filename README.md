@@ -35,12 +35,18 @@ the only thing that changes with the news. No call to action, no advice.
   <img src="docs/cards/rivn_low_he_desktop.png" width="496" alt="RIVN 52-week low, Hebrew, desktop layout">
 </p>
 <p>
-  <img src="docs/cards/nvda_high_en_mobile.png" width="240" alt="NVDA 52-week high, English, mobile layout">
-  <img src="docs/cards/soxl_down_he_mobile.png" width="240" alt="SOXL down 5.9%, Hebrew, mobile layout">
+  <img src="docs/cards/nvda_high_en_popup.png" width="240" alt="NVDA 52-week high, English, full phone popup">
+  <img src="docs/cards/soxl_down_he_popup.png" width="240" alt="SOXL down 5.9%, Hebrew, full phone popup">
+  <img src="docs/cards/smci_up_en_mobile.png" width="240" alt="SMCI up 7.4%, English, mobile card only">
 </p>
 
-`catalyst_demo/card.py` renders these from a `Notification`; `scripts/render_cards.py`
-writes the samples in `docs/cards/` as HTML, and as PNG when WeasyPrint is installed.
+The first two are the full phone popup: platform title bar, greeting, disclaimer,
+support line, sign-off and buttons. The third is the card on its own, as embedded
+in a desktop popup.
+
+`catalyst_demo/card.py` renders these from a `Notification` (`render_card` for the
+card, `render_popup` for the phone popup); `scripts/render_cards.py` writes the
+samples in `docs/cards/` as HTML, and as PNG when WeasyPrint is installed.
 
 ## Run it
 
@@ -50,7 +56,7 @@ Python 3.9 or newer, no third-party packages.
 git clone https://github.com/Eran533/catalyst-engine-demo
 cd catalyst-engine-demo
 pip install -e .[dev]                     # only pytest, for the tests
-pytest -q                                 # 32 tests
+pytest -q                                 # 34 tests
 
 python -m catalyst_demo run --date 2026-09-04 --dry-run   # plan only
 python -m catalyst_demo run --date 2026-09-04             # send (to the console + data/sent.jsonl)
@@ -180,7 +186,7 @@ catalyst_demo/
   __main__.py      CLI: run, report
 scripts/make_demo_data.py   synthetic data generator
 scripts/render_cards.py     sample cards -> docs/cards/
-tests/                      32 tests, pure Python, no fixtures beyond tmp_path
+tests/                      34 tests, pure Python, no fixtures beyond tmp_path
 data/                       committed synthetic data set
 ```
 

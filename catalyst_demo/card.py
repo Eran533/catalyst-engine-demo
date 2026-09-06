@@ -30,6 +30,15 @@ _TEXT = {
         "footer": "Prices are delayed and for information only. Not investment advice.",
         "brand": "DEMO BROKER",
         "up": "up", "down": "down",
+        "greeting": "Hi <b>{name}</b>,",
+        "popup_headline": {PRICE_MOVE: "{symbol} is {direction} {change}% today.",
+                           WK52_HIGH: "{symbol} is at a 52-week high.",
+                           WK52_LOW: "{symbol} is at a 52-week low."},
+        "popup_body": "This is an automated market update about a stock you've traded. "
+                      "It is informational only, not investment advice or a recommendation to buy or sell.",
+        "support": "Questions? Reach us anytime at <b>support@demobroker.example</b>.",
+        "signoff": "Warm regards,<br><b>Demo Broker</b> Team",
+        "ok": "OK", "dismiss": "Don't show this again",
     },
     "he": {
         "kicker": "אירוע שוק",
@@ -43,6 +52,15 @@ _TEXT = {
         "footer": "המחירים מושהים ולמידע בלבד. אין לראות בכך ייעוץ השקעות.",
         "brand": "DEMO BROKER",
         "up": "עלתה", "down": "ירדה",
+        "greeting": "שלום <b>{name}</b>,",
+        "popup_headline": {PRICE_MOVE: "{symbol} {direction} היום {change}%.",
+                           WK52_HIGH: "{symbol} בשיא 52 שבועות.",
+                           WK52_LOW: "{symbol} בשפל 52 שבועות."},
+        "popup_body": "זהו עדכון שוק אוטומטי על מניה שסחרת בה. "
+                      "המידע הוא לידיעה בלבד ואינו ייעוץ השקעות או המלצה לקנות או למכור.",
+        "support": "שאלות? אנחנו זמינים בכתובת <b>support@demobroker.example</b>.",
+        "signoff": "בברכה,<br>צוות <b>Demo Broker</b>",
+        "ok": "אישור", "dismiss": "אל תציגו שוב",
     },
 }
 
@@ -184,4 +202,118 @@ def render_card(n: Notification, layout: str = "desktop", on: date = None) -> st
         chip=on.strftime("%d %b %Y").upper(), stat=stat, stat_label=t["stat_label"][c.kind],
         stat_class="stat long" if len(stat) > 5 else "stat",
         stat_sub=stat_sub, headline=headline, who=who, brand=t["brand"], footer=t["footer"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Full phone popup: the card plus the platform chrome around it (title bar with
+# a close glyph, accent rule, greeting, disclaimer, support line, sign-off and
+# the two buttons). This is what a client sees on their phone.
+# ---------------------------------------------------------------------------
+
+_POPUP_CSS = _CSS + """
+body { width: 390px; height: 720px; overflow: hidden; }
+.popup { width: 390px; height: 720px; display: flex; flex-direction: column;
+         background: linear-gradient(180deg, #0f1e3a 0%, #0b1730 100%); }
+.bar { height: 54px; background: #0b1526; display: flex; align-items: center; gap: 16px; padding: 0 18px;
+       font: 700 22px var(--sans); color: #fff; border-bottom: 3px solid var(--accent); }
+.bar .x { font: 300 24px var(--sans); color: #fff; }
+.bar .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content { flex: 1; padding: 22px 20px 0; position: relative; overflow: hidden; }
+.content .ghost { top: 150px; bottom: auto; font-size: 200px; opacity: .05; }
+.content .head { position: relative; z-index: 1; }
+.content .badge { width: 52px; height: 52px; line-height: 50px; font-size: 13px; border-radius: 14px; }
+.content .kicker { font-size: 11px; }
+.content .symbol { font-size: 20px; margin-top: 4px; }
+.big { margin-top: 32px; display: flex; align-items: baseline; gap: 6px; direction: ltr; }
+.big .arrow { font: 600 22px var(--mono); color: var(--accent); }
+.big .stat { font-size: 54px; }
+.big .stat.long { font-size: 48px; }
+.content .stat-label { font-size: 11px; margin-top: 12px; }
+.content .stat-sub { font-size: 13px; margin-top: 8px; }
+.greet { font: 400 15px var(--sans); color: var(--ink); margin-top: 10px; }
+.h2 { font: 600 28px/1.2 var(--serif); margin-top: 52px; position: relative; z-index: 1; }
+.p { font: 400 13.5px/1.55 var(--sans); color: var(--ink-2); margin-top: 16px; }
+.content .rule { margin-top: 26px; }
+.support { font: 400 13px/1.5 var(--sans); color: var(--ink-2); margin-top: 16px; }
+.support b { color: var(--ink); font-weight: 600; }
+.sign { font: 500 12.5px/1.5 var(--mono); color: var(--ink-2); margin-top: 14px; }
+.sign b { color: var(--ink); }
+.buttons { background: #0b1526; padding: 16px 14px 18px; display: flex; flex-direction: column; gap: 14px; }
+.btn { border: 1px solid #6d7d96; border-radius: 12px; height: 46px; line-height: 44px; text-align: center;
+       font: 500 17px var(--sans); color: #fff; letter-spacing: .04em; }
+.btn.ok { font-weight: 700; }
+[dir="rtl"] .bar { flex-direction: row-reverse; direction: ltr; }
+[dir="rtl"] .bar .t { direction: rtl; text-align: right; }
+[dir="rtl"] .greet, [dir="rtl"] .h2, [dir="rtl"] .p, [dir="rtl"] .support, [dir="rtl"] .sign { direction: rtl; text-align: right; }
+[dir="rtl"] .big { flex-direction: row-reverse; }
+[dir="rtl"] .content .ghost { left: -10px; right: auto; }
+"""
+
+_POPUP_TEMPLATE = """<!doctype html>
+<html lang="{lang}" dir="{dir}">
+<head>
+<meta charset="utf-8" />
+<title>{title}</title>
+<style>{css}</style>
+</head>
+<body data-move="{move}">
+<div class="popup">
+  <div class="bar"><span class="x">&#x2715;</span><span class="t">{bar_title}</span></div>
+  <div class="content">
+    <div class="ghost">{symbol}</div>
+    <div class="head">
+      <div class="badge">{badge}</div>
+      <div>
+        <div class="kicker">{kicker}</div>
+        <div class="symbol">{symbol}</div>
+      </div>
+      <div class="chip">{account}</div>
+    </div>
+    <div class="big"><span class="arrow">{arrow}</span><span class="{stat_class}">{stat}</span></div>
+    <div class="stat-label">{stat_label}</div>
+    <div class="stat-sub">{stat_sub}</div>
+    <div class="greet">{greeting}</div>
+    <div class="h2">{headline}</div>
+    <div class="p">{body}</div>
+    <div class="rule"></div>
+    <div class="support">{support}</div>
+    <div class="sign">{signoff}</div>
+  </div>
+  <div class="buttons">
+    <div class="btn ok">{ok}</div>
+    <div class="btn">{dismiss}</div>
+  </div>
+</div>
+</body>
+</html>
+"""
+
+
+def render_popup(n: Notification) -> str:
+    """The full phone popup for one notification, 390 x 720."""
+    lang = n.language if n.language in _TEXT else "en"
+    t = _TEXT[lang]
+    c = n.catalyst
+    change = c.detail.get("change_pct", 0.0)
+    price = c.detail.get("price", 0.0)
+
+    if c.kind == PRICE_MOVE:
+        stat, stat_sub = f"{change:+.1f}%", f"{t['last']} ${price:,.2f}"
+    else:
+        prev_key = "prev_high" if c.kind == WK52_HIGH else "prev_low"
+        stat, stat_sub = f"${price:,.2f}", f"{t['prev'][c.kind]} ${c.detail.get(prev_key, 0.0):,.2f}"
+
+    headline = t["popup_headline"][c.kind].format(
+        symbol=escape(c.symbol), direction=t[c.direction], change=f"<bdi>{change:+.1f}</bdi>")
+
+    return _POPUP_TEMPLATE.format(
+        lang=lang, dir="rtl" if lang == "he" else "ltr", title=escape(n.subject), css=_POPUP_CSS,
+        bar_title=headline.rstrip("."),
+        move=c.direction, arrow="↗" if c.direction == "up" else "↘", badge=escape(c.symbol[:4]),
+        kicker=t["kicker"], symbol=escape(c.symbol), account=escape(n.account_id),
+        stat=stat, stat_class="stat long" if len(stat) > 5 else "stat",
+        stat_label=t["stat_label"][c.kind], stat_sub=stat_sub,
+        greeting=t["greeting"].format(name=escape(n.client_name)), headline=headline,
+        body=t["popup_body"], support=t["support"], signoff=t["signoff"], ok=t["ok"], dismiss=t["dismiss"],
     )

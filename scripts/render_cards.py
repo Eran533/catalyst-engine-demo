@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from catalyst_demo.card import render_card  # noqa: E402
+from catalyst_demo.card import render_card, render_popup  # noqa: E402
 from catalyst_demo.models import PRICE_MOVE, WK52_HIGH, WK52_LOW, Catalyst, Notification  # noqa: E402
 from catalyst_demo.templates import render  # noqa: E402
 
@@ -29,7 +29,7 @@ SAMPLES = [
 
 def notification(lang: str, name: str, c: Catalyst) -> Notification:
     subject, body = render(c, name, lang)
-    return Notification("ACC-0000", name, lang, c.symbol, c, subject, body, 0.0, DAY)
+    return Notification("ACC-0417", name, lang, c.symbol, c, subject, body, 0.0, DAY)
 
 
 def to_png(html_path: Path, png_path: Path, width: int, height: int) -> bool:
@@ -56,7 +56,10 @@ def main() -> int:
             html_path = OUT / f"{slug}_{layout}.html"
             html_path.write_text(render_card(n, layout, DAY), encoding="utf-8")
             made_png = to_png(html_path, html_path.with_suffix(".png"), w, h) or made_png
-    print(f"wrote {len(SAMPLES) * 2} cards to {OUT}" + ("" if made_png else " (HTML only; install weasyprint + pymupdf for PNG)"))
+        popup_path = OUT / f"{slug}_popup.html"
+        popup_path.write_text(render_popup(n), encoding="utf-8")
+        made_png = to_png(popup_path, popup_path.with_suffix(".png"), 390, 720) or made_png
+    print(f"wrote {len(SAMPLES) * 3} cards to {OUT}" + ("" if made_png else " (HTML only; install weasyprint + pymupdf for PNG)"))
     return 0
 
 
