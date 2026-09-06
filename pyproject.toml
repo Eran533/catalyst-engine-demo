@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "catalyst-engine-demo"
+version = "1.0.0"
+description = "Re-engage dormant brokerage clients with a market catalyst on a stock they care about"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Eran Blank" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["catalyst_demo*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
